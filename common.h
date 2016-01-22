@@ -21,4 +21,11 @@
 #define DBG_LED3_OFF PORTC |= (1<<PC3)
 #define DBG_LED3_TOGGLE (PINC = (1<<PC3))
 
+//UART FRAME FORMAT
+#define FRAME_LENGTH 		0
+#define FRAME_COMMAND 		1
+#define FRAME_REG_ADDR		2
+#define FRAME_REG_COUNT 	3
+#define FRAME_REG_VALUES 	4
+
 #endif

@@ -82,7 +82,7 @@ OBJDIR = .
 
 
 # List C source files here. (C dependencies are automatically generated.)
-SRC = $(TARGET).c uart.c #pid.c twi.c Wire.c UART.c I2Cdev.c MPU6050.c
+SRC = $(TARGET).c uart.c event_manager.c Wire.c I2Cdev.c MPU6050.c twi.c reg_manager.c #pid.c twi.c Wire.c UART.c I2Cdev.c MPU6050.c
 #    
 
 

@@ -2,6 +2,7 @@
 #include <string.h>
 #include "uart.h"
 #include "common.h"
+#include "event_manager.h"
 
 #define UART_BUFF_SIZE 32
 
@@ -15,6 +16,16 @@ volatile uint8_t uart_tx_complete;
 //frame format
 //<LENGTH><COMMAND><REG_ADDR><REG_COUNT>[<REG_VALUES>]
 
+static uint8_t frame_timeout_event_id;
+
+void frame_timeout(void)
+{
+	if(!uart_rx_complete)
+	{
+		uart_rx_buff_cnt = 0;
+	}
+}
+
 void uart_init(void)
 {
 
@@ -23,6 +34,8 @@ void uart_init(void)
 
 	uart_tx_buff_cnt = 0;
 	uart_tx_complete = 1;
+
+	frame_timeout_event_id = event_manager_connect_event(6,frame_timeout,EVENT_SINGLE);
 
 	//Set baud rate - 57600 baud rate + double speed mode
 	UBRR0H = (uint8_t)(34>>8);
@@ -63,12 +76,14 @@ uint8_t uart_get_frame(uint8_t *buffer)
 	}
 }
 
-uint8_t uart_send_frame(uint8_t *buffer, uint8_t len)
+uint8_t uart_send_frame(uint8_t *buffer)
 {
 	if(uart_tx_complete)
 	{
-		uart_tx_buff[0] = len;
-		memcpy(uart_tx_buff+1,buffer,len);
+		uint8_t len;
+		len = buffer[0];
+		//rt_tx_buff[0] = len+1;
+		memcpy(uart_tx_buff,buffer,len);
 		uart_tx_complete = 0;
 		uart_tx_buff_cnt = 0;
 		UCSR0B |= (1 << UDRIE0);
@@ -80,11 +95,14 @@ uint8_t uart_send_frame(uint8_t *buffer, uint8_t len)
 	}
 }
 
+
+
 ISR(USART_RX_vect)
 {
 	DBG_LED1_TOGGLE;
 	uart_rx_buff[uart_rx_buff_cnt] = UDR0;
 	uart_rx_buff_cnt++;
+	event_manager_start_event(frame_timeout_event_id);
 	if(uart_rx_buff[0] == uart_rx_buff_cnt)
 	{
 		uart_rx_complete = 1;
