@@ -1,5 +1,6 @@
 #include "event_manager.h"
 #include "common.h"
+#include "uart.h"
 #include <avr/interrupt.h>
 #include <stdio.h>
 
@@ -23,6 +24,7 @@ struct event_slot slots[SLOTS_COUNT];
 
 void event_manager_init(void)
 {
+	uart_log(__func__);
 	tick = 0;
 	tick_count = 0;
 	//
@@ -47,6 +49,7 @@ void event_manager_init(void)
 
 uint8_t event_manager_connect_event(uint32_t tick_count, void (*event)(void), enum event_type type)
 {
+	uart_log(__FUNCTION__);
 	uint8_t index;
 	for(index = 0; index < SLOTS_COUNT; index++)
 	{
@@ -66,9 +69,15 @@ uint8_t event_manager_connect_event(uint32_t tick_count, void (*event)(void), en
 			}
 			slots[index].ticks_interval = tick_count;
 			slots[index].event = event;
+			#ifdef DEBUG	
+			char buf[64];
+			sprintf(buf,"event connected, id=%d, tick_count=%lu",index+1,tick_count);
+			uart_log_v(buf);
+			#endif
 			return (index + 1);
 		}
 	}
+	uart_log("event not connected, no free slots");
 	return 0;
 }
 

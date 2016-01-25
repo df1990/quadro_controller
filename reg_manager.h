@@ -52,6 +52,7 @@
 //REG DEFINITIONS END
 
 void reg_manager_init(void);
-uint8_t reg_manager_parse(uint8_t *frame);
-void reg_manager_connect_handler(uint8_t reg_id, void (*handler)(void));
+void reg_manager_update(void);
+uint8_t reg_manager_get_reg(uint8_t reg_id);
+void reg_manager_connect_handler(uint8_t reg_id, void (*handler)(uint8_t));
 #endif

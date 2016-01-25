@@ -82,7 +82,8 @@ OBJDIR = .
 
 
 # List C source files here. (C dependencies are automatically generated.)
-SRC = $(TARGET).c uart.c event_manager.c Wire.c I2Cdev.c MPU6050.c twi.c reg_manager.c #pid.c twi.c Wire.c UART.c I2Cdev.c MPU6050.c
+SRC = $(TARGET).c uart.c event_manager.c Wire.c I2Cdev.c MPU6050.c twi.c reg_manager.c pid_manager.c pid.c motor_manager.c fifo.c
+#SRC = $(TARGET).c uart.c fifo.c
 #    
 
 
@@ -128,7 +129,7 @@ CSTANDARD = -std=gnu99
 
 
 # Place -D or -U options here for C sources
-CDEFS = -DF_CPU=$(F_CPU)UL
+CDEFS = -DF_CPU=$(F_CPU)UL 
 
 
 # Place -D or -U options here for ASM sources
@@ -471,18 +472,22 @@ ifeq ($(DEBUG_BACKEND),simulavr)
 endif
 	@echo break main >> $(GDBINIT_FILE)
 
-debug: gdb-config $(TARGET).elf
-ifeq ($(DEBUG_BACKEND), avarice)
-	@echo Starting AVaRICE - Press enter when "waiting to connect" message displays.
-	@$(WINSHELL) /c start avarice --jtag $(JTAG_DEV) --erase --program --file \
-	$(TARGET).elf $(DEBUG_HOST):$(DEBUG_PORT)
-	@$(WINSHELL) /c pause
 
-else
-	@$(WINSHELL) /c start simulavr --gdbserver --device $(MCU) --clock-freq \
-	$(DEBUG_MFREQ) --port $(DEBUG_PORT)
-endif
-	@$(WINSHELL) /c start avr-$(DEBUG_UI) --command=$(GDBINIT_FILE)
+debug: CFLAGS += -DDEBUG
+debug: begin gccversion sizebefore build sizeafter end
+
+#debug: gdb-config $(TARGET).elf
+#ifeq ($(DEBUG_BACKEND), avarice)
+#	@echo Starting AVaRICE - Press enter when "waiting to connect" message displays.
+#	@$(WINSHELL) /c start avarice --jtag $(JTAG_DEV) --erase --program --file \
+#	$(TARGET).elf $(DEBUG_HOST):$(DEBUG_PORT)
+#	@$(WINSHELL) /c pause
+
+#else
+#	@$(WINSHELL) /c start simulavr --gdbserver --device $(MCU) --clock-freq \
+#	$(DEBUG_MFREQ) --port $(DEBUG_PORT)
+#endif
+#	@$(WINSHELL) /c start avr-$(DEBUG_UI) --command=$(GDBINIT_FILE)
 
 
 
