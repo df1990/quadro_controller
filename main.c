@@ -10,25 +10,32 @@
 #include "frame_manager.h"
 #include "reg_manager.h"
 
-//#include "event_manager.h"
-//#include "I2Cdev.h"
-//#include "MPU6050.h"
+#include "event_manager.h"
+
+#include "I2Cdev.h"
+#include "MPU6050.h"
 //#include "pid_manager.h"
 //#include "motor_manager.h"
 
 //char dupa[32] = "TMP_LOG_TEST\n\r";
 
-/*
-uint8_t frame_buffer[32];
+
+//uint8_t frame_buffer[32];
 
 uint8_t main_tick;
-uint8_t pid_x_id, pid_y_id, pid_z_id;
+//uint8_t pid_x_id, pid_y_id, pid_z_id;
 
 void dbg_led_blink(void)
 {
 	DBG_LED3_TOGGLE;
 }
 
+void main_loop_tick(void)
+{
+	main_tick = 1;
+}
+
+/*
 void dbg_led0_blink(uint8_t value)
 {
 	if(value)DBG_LED0_ON;
@@ -53,10 +60,7 @@ void dbg_led3_blink(uint8_t value)
 	else DBG_LED3_OFF;
 }
 
-void main_loop_tick(void)
-{
-	main_tick = 1;
-}
+
 
 #define COMMAND_UPDATE_PID 1
 
@@ -108,13 +112,7 @@ void calculate_setpoints(int16_t *thrust, int16_t *pitch, int16_t *roll, int16_t
 int main(void)
 {
 
-	//struct fifo FIFO_RX;
-	//struct fifo FIFO_TX;
-
-    //frame_manager_init();
-    //struct frame quadro_frame;
-
-    reg_manager_init();
+    int16_t ax, ay, az, gx, gy, gz;
 
 	DBG_LED0_INIT;
 	DBG_LED1_INIT;
@@ -125,89 +123,28 @@ int main(void)
 	DBG_LED2_OFF;
 	DBG_LED3_OFF;
 
-	//fifo_init(&FIFO_RX);
-	//fifo_init(&FIFO_TX);
-	//uart_init(&FIFO_RX, &FIFO_TX);
 
+    reg_manager_init();
+    event_manager_init();
+    event_manager_connect_event(1000,dbg_led_blink,EVENT_CONTINOUS);
+    event_manager_connect_event(10,main_loop_tick,EVENT_CONTINOUS);
+    I2C_dev_init();
 
 	sei();
-    //frame_manager_DBG();
-	/*fifo_init(&FIFO1);
-	uint8_t index;
-	index = 1;
-	while(fifo_put(&FIFO1,index))
-	{
-		index++;
-		//index = (index ^ (index << 3));
-	}
-	while(fifo_get(&FIFO1,&index))
-	{
-		char buf[32];
-		sprintf(buf,"Value=%d",index);
-		uart_log_v(buf);
-	}*/
 
-	//uint8_t tmp;
-	//quadro_frame.length = 7;
-	//quadro_frame.command = 'r';
-	//quadro_frame.reg_addr = 0;
-	//quadro_frame.reg_count = 1;
-	//frame_manager_send_frame(&quadro_frame);
+    MPU6050_initialize();
 
 	while(1)
 	{
         reg_manager_update();
-        //DBG_LED2_TOGGLE;
-        //if(frame_manager_get_frame(&quadro_frame))
-        //{
-        //    frame_manager_send_frame(&quadro_frame);
-        //}
-		/*if(fifo_get(&FIFO_RX,&tmp))
+        event_manager_update();
+        if(main_tick)
 		{
-			if(tmp == 'w')
-			{
-				fifo_put(&FIFO_TX,'D');
-				fifo_put(&FIFO_TX,'a');
-				fifo_put(&FIFO_TX,'r');
-				fifo_put(&FIFO_TX,'i');
-				fifo_put(&FIFO_TX,'u');
-				fifo_put(&FIFO_TX,'s');
-				fifo_put(&FIFO_TX,'z');
-				fifo_put(&FIFO_TX,' ');
-				fifo_put(&FIFO_TX,'w');
-				fifo_put(&FIFO_TX,'y');
-				fifo_put(&FIFO_TX,'m');
-				fifo_put(&FIFO_TX,'i');
-				fifo_put(&FIFO_TX,'a');
-				fifo_put(&FIFO_TX,'t');
-				fifo_put(&FIFO_TX,'a');
-				fifo_put(&FIFO_TX,'\n');
-				fifo_put(&FIFO_TX,'\r');
-
-				uart_send_tx_fifo();
-			}
-		}*/
-
-	}
-	//uint8_t index;
-	//index = 250;
-
-	/*while(fifo_put(&FIFO1,index))
-	{
-		index++;
-		//index = (index ^ (index << 3));
-	}
-	while(fifo_get(&FIFO1,&index))
-	{
-		char buf[32];
-		sprintf(buf,"Value=%d",index);
-		uart_log_v(buf);
+			main_tick = 0;
+			MPU6050_getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+        }
 	}
 
-	while(1)
-	{
-
-	}*/
 	/*
 	int16_t ax, ay, az, gx, gy, gz;
 	int16_t pid_x_out, pid_y_out, pid_z_out;

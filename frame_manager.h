@@ -24,7 +24,7 @@
 
 
 //<$><len><cmd><addr><count><#>[<values><crc>]
-
+#define FRAME_NO_PAYLOAD_LENGTH 7
 #define FRAME_HEADER_LENGTH 6
 #define HEADER_START_CODE '$'
 #define HEADER_END_CODE '#'

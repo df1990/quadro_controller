@@ -82,8 +82,8 @@ OBJDIR = .
 
 
 # List C source files here. (C dependencies are automatically generated.)
-#SRC = $(TARGET).c uart.c event_manager.c Wire.c I2Cdev.c MPU6050.c twi.c reg_manager.c pid_manager.c pid.c motor_manager.c fifo.c
-SRC = $(TARGET).c uart.c fifo.c frame_manager.c reg_manager.c
+#SRC =  pid_manager.c pid.c motor_manager.c
+SRC = $(TARGET).c uart.c fifo.c frame_manager.c reg_manager.c event_manager.c MPU6050.c I2Cdev.c Wire.c twi.c
 #
 
 
