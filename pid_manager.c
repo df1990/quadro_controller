@@ -14,9 +14,11 @@ struct pid_item {
 
 struct pid_item pid_array[PID_COUNT];
 
+
+
 void pid_manager_init(void)
 {
-	uart_log(__func__);
+	//uart_log(__func__);
 	uint8_t index;
 	for(index = 0; index < PID_COUNT; index++)
 	{
@@ -26,11 +28,12 @@ void pid_manager_init(void)
 		pid_array[index].d_addr = 0;
 		pid_Init(0,0,0,&(pid_array[index].pid));
 	}
+
 }
 
 uint8_t pid_manager_create_pid(uint8_t pid_p_addr, uint8_t pid_i_addr, uint8_t pid_d_addr)
 {
-	uart_log(__func__);
+	//uart_log(__func__);
 	uint8_t index;
 	for(index = 0; index < PID_COUNT; index++)
 	{
@@ -41,29 +44,24 @@ uint8_t pid_manager_create_pid(uint8_t pid_p_addr, uint8_t pid_i_addr, uint8_t p
 			pid_array[index].i_addr = pid_i_addr;
 			pid_array[index].d_addr = pid_d_addr;
 
-			#ifdef DEBUG
-			char buf[32];
-			sprintf(buf,"pid created, id=%d",(index+1));
-			uart_log_v(buf);
-			#endif
 			return (index + 1);
 		}
 	}
-	uart_log("cannot create pid");
+	//uart_log("cannot create pid");
 	return 0;
 }
 
 uint8_t pid_manager_reinit_pid(uint8_t pid_id)
 {
-	uart_log(__func__);
+	//uart_log(__func__);
 	if((pid_id > 0) && (pid_id <= PID_COUNT))
 	{
 		uint8_t index = pid_id - 1;
-		
+
 		uint16_t temp_p;
          	uint16_t temp_i;
          	uint16_t temp_d;
- 
+
 		temp_p = 0;
        		temp_p = (uint16_t)(reg_manager_get_reg(pid_array[index].p_addr));
        		temp_p <<= 8;
@@ -75,19 +73,15 @@ uint8_t pid_manager_reinit_pid(uint8_t pid_id)
          	temp_i <<= 8;
          	temp_i |= (uint16_t)(reg_manager_get_reg(pid_array[index].i_addr + 1));
          	temp_i &= 0x7FFF;
- 
+
 		temp_d = 0;
          	temp_d = (uint16_t)(reg_manager_get_reg(pid_array[index].d_addr));
          	temp_d <<= 8;
          	temp_d |= (uint16_t)(reg_manager_get_reg(pid_array[index].d_addr + 1));
          	temp_d &= 0x7FFF;
- 
-		#ifdef DEBUG		
-		char buf[64];
-		sprintf(buf,"pid reinit, id=%d, [P=%d | I=%d | D=%d]",pid_id,temp_p,temp_i,temp_d);
-		uart_log_v(buf);
-#endif
-	        pid_Init((int16_t)(temp_p), (int16_t)(temp_i), (int16_t)(temp_d), &(pid_array[index].pid));
+
+	        pid_Reinit((int16_t)(temp_p), (int16_t)(temp_i), (int16_t)(temp_d), &(pid_array[index].pid));
+
 
 	}
  	return 0;
@@ -105,7 +99,7 @@ int16_t pid_manager_update_pid(uint8_t pid_id, int16_t set_val, int16_t meas_val
 		ret_val = pid_Controller(set_val, meas_val,&(pid_array[index].pid));
 	}
 	return ret_val;
-	
+
 }
 
 

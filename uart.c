@@ -45,60 +45,6 @@ void uart_send_tx_fifo(void)
 	UCSR0B |= (1 << UDRIE0);
 }
 
-/*
-void uart_connect_event(void)
-{
-//	frame_timeout_event_id = event_manager_connect_event(6,frame_timeout,EVENT_SINGLE);
-}*/
-
-
-/*uint8_t uart_frame_rx_complete(void)
-{
-	return uart_rx_complete;
-	//return 0;
-}*/
-
-/*uint8_t uart_frame_tx_complete(void)
-{
-	return uart_tx_complete;
-	//return 0;
-}*/
-
-/*uint8_t uart_get_frame(uint8_t *buffer)
-{
-	if(uart_rx_complete)
-	{
-		memcpy(buffer,uart_rx_buff,uart_rx_buff_cnt);
-		uart_rx_complete = 0;
-		uart_rx_buff_cnt = 0;
-
-		uint8_t dummy;
-		while ( UCSR0A & (1<<RXC0) ) dummy = UDR0;
-		dummy++;
-
-		UCSR0B |= (1<<RXCIE0);
-		return 1;
-	}
-	else
-	{
-		return 0;
-	}
-}*/
-
-/*
-void uart_send_frame(uint8_t *buffer)
-{
-	while(!uart_tx_complete);//wait
-
-	uint8_t len;
-	len = buffer[0];
-	memcpy(uart_tx_buff,buffer,len);
-	uart_tx_complete = 0;
-	uart_tx_buff_cnt = 0;
-	UCSR0B |= (1 << UDRIE0);
-}
-*/
-
 void uart_log_nl(void)
 {
 #ifdef DEBUG

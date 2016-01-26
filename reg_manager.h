@@ -3,53 +3,59 @@
 #include <avr/io.h>
 
 //REG DEFINITIONS
-#define REG_COUNT 35
 
-#define REG_STATUS 	0
-#define REG_COMMAND 	1
-
-#define REG_THRUST	2
-#define REG_PITCH	3
-#define REG_ROLL	4
-#define REG_YAW		5
-
+/////////////////////////////////////////
+#define REG_STATUS 	        0
+#define REG_COMMAND 	    1
+/////////////////////////////////////////
+#define REG_THRUST	        2
+#define REG_PITCH	        3
+#define REG_ROLL	        4
+#define REG_YAW		        5
+////////////////////////////////////////
 #define REG_PID_X_PH		6//-
 #define REG_PID_X_PL		7//-
 #define REG_PID_X_IH		8//-- PID X
 #define REG_PID_X_IL		9//-- PID X
 #define REG_PID_X_DH		10//-
 #define REG_PID_X_DL		11//-
+#define REG_PID_X_UPDATE    12
+/////////////////////////////////////////
+#define REG_PID_Y_PH		13//-
+#define REG_PID_Y_PL		14//-
+#define REG_PID_Y_IH		15//-- PID Y
+#define REG_PID_Y_IL		16//-- PID Y
+#define REG_PID_Y_DH		17//-
+#define REG_PID_Y_DL		18//-
+#define REG_PID_Y_UPDATE    19
+/////////////////////////////////////////
+#define REG_PID_Z_PH		20//-
+#define REG_PID_Z_PL		21//-
+#define REG_PID_Z_IH		22//-- PID Z
+#define REG_PID_Z_IL		23//-- PID Z
+#define REG_PID_Z_DH		24//-
+#define REG_PID_Z_DL		25//-
+#define REG_PID_Z_UPDATE    26
+/////////////////////////////////////////
+#define REG_LED			    27
 
-#define REG_PID_Y_PH		12//-
-#define REG_PID_Y_PL		13//-
-#define REG_PID_Y_IH		14//-- PID Y
-#define REG_PID_Y_IL		15//-- PID Y
-#define REG_PID_Y_DH		16//-
-#define REG_PID_Y_DL		17//-
+#define REG_FL_PWM		    28
+#define REG_FR_PWM		    29
+#define REG_BL_PWM		    30
+#define REG_BR_PWM		    31
 
-#define REG_PID_Z_PH		18//-
-#define REG_PID_Z_PL		19//-
-#define REG_PID_Z_IH		20//-- PID Z
-#define REG_PID_Z_IL		21//-- PID Z
-#define REG_PID_Z_DH		22//-
-#define REG_PID_Z_DL		23//-
+#define REG_FR_BL_ENABLE	32
+#define REG_FL_BR_ENABLE	33
 
-#define REG_LED			24
+#define REG_GX_OFFSET		34
+#define REG_GY_OFFSET		35
+#define REG_GZ_OFFSET		36
 
-#define REG_FL_PWM		25
-#define REG_FR_PWM		26
-#define REG_BL_PWM		27
-#define REG_BR_PWM		28
-
-#define REG_FR_BL_ENABLE	29
-#define REG_FL_BR_ENABLE	30
-
-#define REG_GX_OFFSET		31
-#define REG_GY_OFFSET		32
-#define REG_GZ_OFFSET		33
-
-#define REG_LOG1_ENABLE		34
+#define REG_LOG1_ENABLE		37
+#define __REG_END__         38
 //REG DEFINITIONS END
+
+#define REG_COUNT __REG_END__
 
 void reg_manager_init(void);
 void reg_manager_update(void);

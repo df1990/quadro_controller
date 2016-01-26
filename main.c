@@ -14,7 +14,10 @@
 
 #include "I2Cdev.h"
 #include "MPU6050.h"
-//#include "pid_manager.h"
+
+#include "pid_manager.h"
+#include "setpoints_calc.h"
+
 //#include "motor_manager.h"
 
 //char dupa[32] = "TMP_LOG_TEST\n\r";
@@ -22,7 +25,7 @@
 
 //uint8_t frame_buffer[32];
 
-uint8_t main_tick;
+static uint8_t main_tick;
 //uint8_t pid_x_id, pid_y_id, pid_z_id;
 
 void dbg_led_blink(void)
@@ -36,31 +39,6 @@ void main_loop_tick(void)
 }
 
 /*
-void dbg_led0_blink(uint8_t value)
-{
-	if(value)DBG_LED0_ON;
-	else DBG_LED0_OFF;
-}
-
-void dbg_led1_blink(uint8_t value)
-{
-	if(value)DBG_LED1_ON;
-	else DBG_LED1_OFF;
-}
-
-void dbg_led2_blink(uint8_t value)
-{
-	if(value)DBG_LED2_ON;
-	else DBG_LED2_OFF;
-}
-
-void dbg_led3_blink(uint8_t value)
-{
-	if(value)DBG_LED3_ON;
-	else DBG_LED3_OFF;
-}
-
-
 
 #define COMMAND_UPDATE_PID 1
 
@@ -109,10 +87,38 @@ void calculate_setpoints(int16_t *thrust, int16_t *pitch, int16_t *roll, int16_t
 
 */
 
+static uint8_t pid_x_id, pid_y_id, pid_z_id;
+
+void pid_x_update(uint8_t value)
+{
+    if(value)
+    {
+        pid_manager_reinit_pid(pid_x_id);
+    }
+}
+
+void pid_y_update(uint8_t value)
+{
+    if(value)
+    {
+        pid_manager_reinit_pid(pid_y_id);
+    }
+}
+
+void pid_z_update(uint8_t value)
+{
+    if(value)
+    {
+        pid_manager_reinit_pid(pid_z_id);
+    }
+}
+
 int main(void)
 {
 
     int16_t ax, ay, az, gx, gy, gz;
+    int16_t thrust,pitch,roll,yaw;
+
 
 	DBG_LED0_INIT;
 	DBG_LED1_INIT;
@@ -125,9 +131,20 @@ int main(void)
 
 
     reg_manager_init();
+
     event_manager_init();
     event_manager_connect_event(1000,dbg_led_blink,EVENT_CONTINOUS);
     event_manager_connect_event(10,main_loop_tick,EVENT_CONTINOUS);
+
+    pid_manager_init();
+    pid_x_id = pid_manager_create_pid(REG_PID_X_PH,REG_PID_X_IH,REG_PID_X_DH);
+	pid_y_id = pid_manager_create_pid(REG_PID_Y_PH,REG_PID_Y_IH,REG_PID_Y_DH);
+	pid_z_id = pid_manager_create_pid(REG_PID_Z_PH,REG_PID_Z_IH,REG_PID_Z_DH);
+
+    reg_manager_connect_handler(REG_PID_X_UPDATE,pid_x_update);
+    reg_manager_connect_handler(REG_PID_Y_UPDATE,pid_y_update);
+    reg_manager_connect_handler(REG_PID_Z_UPDATE,pid_z_update);
+
     I2C_dev_init();
 
 	sei();
@@ -142,51 +159,19 @@ int main(void)
 		{
 			main_tick = 0;
 			MPU6050_getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+			setpoints_calc(&thrust, &pitch, &roll, &yaw);
+
         }
 	}
 
 	/*
-	int16_t ax, ay, az, gx, gy, gz;
+
 	int16_t pid_x_out, pid_y_out, pid_z_out;
 	int16_t thrust,pitch,roll,yaw;
-	main_tick = 0;
-	ax = 0;
-	ay = 0;
-	az = 0;
-	gx = 0;
-	gy = 0;
-	gz = 0;
 
-	DBG_LED0_INIT;
-	DBG_LED1_INIT;
-	DBG_LED2_INIT;
-	DBG_LED3_INIT;
-	DBG_LED0_OFF;
-	DBG_LED1_OFF;
-	DBG_LED2_OFF;
-	DBG_LED3_OFF;
-
-	uart_init();
-	event_manager_init();
-	reg_manager_init();
 	motor_manager_init();
 
 	reg_manager_connect_handler(REG_COMMAND,command_handler);
-
-	pid_manager_init();
-	pid_x_id = pid_manager_create_pid(REG_PID_X_PH,REG_PID_X_IH,REG_PID_X_DH);
-	pid_y_id = pid_manager_create_pid(REG_PID_Y_PH,REG_PID_Y_IH,REG_PID_Y_DH);
-	pid_z_id = pid_manager_create_pid(REG_PID_Z_PH,REG_PID_Z_IH,REG_PID_Z_DH);
-
-	uart_connect_event();
-	I2C_dev_init();
-	event_manager_connect_event(1000,dbg_led_blink,EVENT_CONTINOUS);
-	event_manager_connect_event(10,main_loop_tick,EVENT_CONTINOUS);
-
-
-	sei();
-
-	MPU6050_initialize();
 
 	while(1)
 	{
