@@ -1,28 +1,30 @@
 #include "reg_manager.h"
+#include "frame_manager.h"
 #include "common.h"
-#include "uart.h"
+//#include "uart.h"
 #include <stdlib.h>
 #include <stdio.h>
 
 uint8_t reg_array[REG_COUNT];
 void (*reg_handlers[REG_COUNT])(uint8_t);
-uint8_t frame_buffer[FRAME_BUFFER_SIZE];
+
+static struct frame quadro_frame;
 
 void reg_manager_init(void)
 {
-	uart_log(__FUNCTION__);
-	
 	uint8_t index;
 	for(index = 0; index < REG_COUNT; index++)
 	{
 		reg_array[index] = 0;
 		reg_handlers[index] = NULL;
-	}	
+	}
+
+	frame_manager_init();
 }
 
 void reg_manager_connect_handler(uint8_t reg_id, void (*handler)(uint8_t))
 {
-	uart_log(__FUNCTION__);
+	//uart_log(__FUNCTION__);
 	if((reg_id < REG_COUNT) && (handler != NULL))
 	{
 		#ifdef DEBUG
@@ -34,19 +36,27 @@ void reg_manager_connect_handler(uint8_t reg_id, void (*handler)(uint8_t))
 	}
 	else
 	{
-		uart_log("reg handler not connected");
+		//uart_log("reg handler not connected");
 	}
 }
 
-void reg_write(uint8_t *frame)
+void invalid_frame(struct frame *f, uint8_t err_code)
 {
-	uart_log(__FUNCTION__);
-	
+	f->length = 7;
+	f->command = 'e';
+	f->reg_addr = err_code;
+	f->reg_count = 0;
+}
+
+void reg_write(struct frame *f)
+{
+	//uart_log(__FUNCTION__);
+    /*
 	if((frame[FRAME_REG_ADDR] < REG_COUNT) 	&&
-	   (frame[FRAME_REG_COUNT] > 0)		&&		
+	   (frame[FRAME_REG_COUNT] > 0)		&&
 	   (frame[FRAME_REG_ADDR] + frame[FRAME_REG_COUNT] < REG_COUNT))
 	   {
-		uart_log("frame valid");
+		//uart_log("frame valid");
 		uint8_t index;
 		uint8_t reg_array_base;
 		reg_array_base = frame[FRAME_REG_ADDR];
@@ -60,7 +70,7 @@ void reg_write(uint8_t *frame)
 			reg_array[reg_array_base + index] = frame[FRAME_REG_VALUES + index];
 			if(reg_handlers[reg_array_base + index] != NULL)
 			{
-				uart_log("calling reg update handler");
+				//uart_log("calling reg update handler");
 				reg_handlers[reg_array_base + index](reg_array[reg_array_base + index]);
 ;
 			}
@@ -68,17 +78,40 @@ void reg_write(uint8_t *frame)
 	   }
 	else
 	{
-		uart_log("frame invalid");
-	}
+		//uart_log("frame invalid");
+	}*/
 }
 
-void reg_read(uint8_t *frame)
+void reg_read(struct frame *f)
 {
+    if((f->reg_addr < REG_COUNT) &&
+        (f->reg_count > 0) &&
+        (f->reg_addr + f->reg_count - 1 < REG_COUNT))
+        {
+            uint8_t index;
+            uint8_t reg_array_base;
+            reg_array_base = f->reg_addr;
+            for(index = 0; index < f->reg_count; index++)
+            {
+                f->reg_values[index] = reg_array[reg_array_base + index];
+            }
+            f->length = index + 7;
+
+        }
+        else if(f->reg_addr >= REG_COUNT)
+        {
+            invalid_frame(f,ERR_ADDR_INV);
+        }
+        else
+        {
+            invalid_frame(f,ERR_CNT_INV);
+        }
+    /*
 	if((frame[FRAME_REG_ADDR] < REG_COUNT) 	&&
-	   (frame[FRAME_REG_COUNT] > 0)		&&		
+	   (frame[FRAME_REG_COUNT] > 0)		&&
 	   (frame[FRAME_REG_ADDR] + frame[FRAME_REG_COUNT] < REG_COUNT))
 	   {
-		   uart_log("frame valid");
+		   //uart_log("frame valid");
 		uint8_t index;
 		uint8_t reg_array_base;
 		reg_array_base = frame[FRAME_REG_ADDR];
@@ -90,12 +123,12 @@ void reg_read(uint8_t *frame)
 			uart_log_v(buf);
 			#endif
 			frame[FRAME_REG_VALUES + index] = reg_array[reg_array_base + index];
-		}	
+		}
 		frame[FRAME_LENGTH] = index + 4;
 	   }
 	else
 	{
-		uart_log("frame invalid");
+		//uart_log("frame invalid");
 		frame[FRAME_LENGTH] = BASE_FRAME_LENGTH + 1;
 
 		frame[FRAME_COMMAND] = COMMAND_REG_READ;
@@ -110,7 +143,7 @@ void reg_read(uint8_t *frame)
 			frame[FRAME_REG_VALUES] = E_CNT_INV;
 		}
 
-	}
+	}*/
 }
 
 uint8_t reg_manager_get_reg(uint8_t reg_id)
@@ -133,46 +166,54 @@ void reg_manager_set_reg(uint8_t reg_id, uint8_t reg_value)
 	}
 }
 
-void invalid_frame(uint8_t *frame)
-{
-	/*
-	uint8_t len;
-	len = sprintf((char *)(frame)," tInvalid frame received\n\r");
-	len++;
-	frame[0] = len;
-	*/
-}
+
 
 void reg_manager_update(void)
 {
-	if(uart_get_frame(frame_buffer))
+	if(frame_manager_get_frame(&quadro_frame))
 	{
-		uart_log("reg maganer frame rx complete");
+        switch(quadro_frame.command)
+        {
+            case COMMAND_REG_WRITE:
+                reg_read(&quadro_frame);
+            break;
+
+            case COMMAND_REG_READ:
+                reg_read(&quadro_frame);
+            break;
+
+            default:
+                invalid_frame(&quadro_frame,ERR_CMD_INV);
+            break;
+        }
+        frame_manager_send_frame(&quadro_frame);
+	}
+	/*	//uart_log("reg maganer frame rx complete");
 		if(frame_buffer[FRAME_LENGTH] >= BASE_FRAME_LENGTH)
 		{
 			switch(frame_buffer[FRAME_COMMAND])
 			{
 				case COMMAND_REG_WRITE:
-					uart_log("reg write command");
+					//uart_log("reg write command");
 					reg_write(frame_buffer);
 				break;
 
 				case COMMAND_REG_READ:
-					uart_log("reg read command");
+					//uart_log("reg read command");
 					reg_read(frame_buffer);
 					uart_send_frame(frame_buffer);
 				break;
 
 				default:
-					uart_log("invalid command");
+					//uart_log("invalid command");
 				break;
 			}
 		}
 		else
 		{
-			uart_log("frame length invalid");
+			//uart_log("frame length invalid");
 		}
-	}
+	}*/
 }
 
 

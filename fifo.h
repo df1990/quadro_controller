@@ -15,5 +15,8 @@ struct fifo {
 void fifo_init(struct fifo *f);
 uint8_t fifo_put(struct fifo *f, uint8_t data);
 uint8_t fifo_get(struct fifo *f, uint8_t *data);
+uint8_t fifo_get_data_count(struct fifo *f);
+uint8_t fifo_get_data_at(struct fifo *f, uint8_t index);
+void fifo_flush_data(struct fifo *f, uint8_t data_count);
 
 #endif

@@ -22,18 +22,18 @@
 #define DBG_LED3_TOGGLE (PINC = (1<<PC3))
 
 //UART FRAME FORMAT
-#define FRAME_LENGTH 		0
-#define FRAME_COMMAND 		1
-#define FRAME_REG_ADDR		2
-#define FRAME_REG_COUNT 	3
-#define FRAME_REG_VALUES 	4
+//#define FRAME_LENGTH 		0
+//#define FRAME_COMMAND 		1
+//#define FRAME_REG_ADDR		2
+//#define FRAME_REG_COUNT 	3
+//#define FRAME_REG_VALUES 	4
 
-#define COMMAND_REG_WRITE	'w'
-#define COMMAND_REG_READ	'r'
+//#define COMMAND_REG_WRITE	'w'
+//#define COMMAND_REG_READ	'r'
 
-#define BASE_FRAME_LENGTH	4
-#define E_ADDR_INV	1
-#define E_CNT_INV	2
+//#define BASE_FRAME_LENGTH	4
+//#define E_ADDR_INV	1
+//#define E_CNT_INV	2
 
 
 //COMMON DEF

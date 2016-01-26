@@ -37,6 +37,7 @@ void uart_init(struct fifo *rx_f, struct fifo *tx_f)
 	UCSR0C = (3<<UCSZ00);
 	//Enable receiver and transmitter
 	UCSR0B = ((1<<RXCIE0)|(1<<RXEN0)|(1<<TXEN0));
+
 }
 
 void uart_send_tx_fifo(void)
@@ -88,7 +89,7 @@ void uart_connect_event(void)
 void uart_send_frame(uint8_t *buffer)
 {
 	while(!uart_tx_complete);//wait
-	
+
 	uint8_t len;
 	len = buffer[0];
 	memcpy(uart_tx_buff,buffer,len);

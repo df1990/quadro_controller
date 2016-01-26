@@ -54,5 +54,6 @@
 void reg_manager_init(void);
 void reg_manager_update(void);
 uint8_t reg_manager_get_reg(uint8_t reg_id);
+void reg_manager_set_reg(uint8_t reg_id, uint8_t reg_value);
 void reg_manager_connect_handler(uint8_t reg_id, void (*handler)(uint8_t));
 #endif
