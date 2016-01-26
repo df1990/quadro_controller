@@ -18,15 +18,10 @@
 #include "pid_manager.h"
 #include "setpoints_calc.h"
 
-//#include "motor_manager.h"
-
-//char dupa[32] = "TMP_LOG_TEST\n\r";
-
-
-//uint8_t frame_buffer[32];
+#include "motor_manager.h"
 
 static uint8_t main_tick;
-//uint8_t pid_x_id, pid_y_id, pid_z_id;
+static uint8_t pid_x_id, pid_y_id, pid_z_id;
 
 void dbg_led_blink(void)
 {
@@ -56,38 +51,9 @@ void command_handler(uint8_t value)
 
 	}
 }
-
-
-int16_t map(int16_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t out_max)
-{
-	return (int16_t)(((int32_t)x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min);
-}
-
-
-void calculate_setpoints(int16_t *thrust, int16_t *pitch, int16_t *roll, int16_t *yaw)
-{
-	int16_t temp_i16;
-	int8_t temp_i8;
-
-	temp_i16 = (int16_t)(reg_manager_get_reg(REG_THRUST));
-     	*thrust = map(temp_i16,0,255,THRUST_MIN_VALUE,THRUST_MAX_VALUE);
-
-        temp_i8 = (int8_t)(reg_manager_get_reg(REG_PITCH));
-        temp_i16 = (int16_t)temp_i8;
-        *pitch = map(temp_i16,-127,127,PITCH_MIN_VALUE,PITCH_MAX_VALUE);
-
-	temp_i8 = (int8_t)(reg_manager_get_reg(REG_ROLL));
-	temp_i16 = (int16_t)temp_i8;
-	*roll = map(temp_i16,-127,127,ROLL_MIN_VALUE,ROLL_MAX_VALUE);
-
-	temp_i8 =(int8_t)(reg_manager_get_reg(REG_YAW));
-	temp_i16 = (int16_t)temp_i8;
-	*yaw = map(temp_i16,-127,127,YAW_MIN_VALUE,YAW_MAX_VALUE);
-}
-
 */
 
-static uint8_t pid_x_id, pid_y_id, pid_z_id;
+
 
 void pid_x_update(uint8_t value)
 {
@@ -118,7 +84,7 @@ int main(void)
 
     int16_t ax, ay, az, gx, gy, gz;
     int16_t thrust,pitch,roll,yaw;
-
+    int16_t pid_x_out, pid_y_out, pid_z_out;
 
 	DBG_LED0_INIT;
 	DBG_LED1_INIT;
@@ -145,12 +111,14 @@ int main(void)
     reg_manager_connect_handler(REG_PID_Y_UPDATE,pid_y_update);
     reg_manager_connect_handler(REG_PID_Z_UPDATE,pid_z_update);
 
+    motor_manager_init();
+
     I2C_dev_init();
 
 	sei();
 
     MPU6050_initialize();
-
+    motor_manager_update(32767,0,0,0);
 	while(1)
 	{
         reg_manager_update();
@@ -161,38 +129,16 @@ int main(void)
 			MPU6050_getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
 			setpoints_calc(&thrust, &pitch, &roll, &yaw);
 
-        }
-	}
-
-	/*
-
-	int16_t pid_x_out, pid_y_out, pid_z_out;
-	int16_t thrust,pitch,roll,yaw;
-
-	motor_manager_init();
-
-	reg_manager_connect_handler(REG_COMMAND,command_handler);
-
-	while(1)
-	{
-		event_manager_update();
-		reg_manager_update();
-
-		if(main_tick)
-		{
-			main_tick = 0;
-			MPU6050_getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-
-			calculate_setpoints(&thrust, &pitch, &roll, &yaw);
-
 			pid_x_out = pid_manager_update_pid(pid_x_id,pitch,gx);
 			pid_y_out = pid_manager_update_pid(pid_y_id,roll,gy);
 			pid_z_out = pid_manager_update_pid(pid_z_id,yaw,gz);
 
-			motor_manager_update(thrust, pid_x_out, pid_y_out,pid_z_out);
+			pid_x_out++;
+			pid_y_out++;
+			pid_z_out++;
+			//motor_manager_update(thrust, pid_x_out, pid_y_out,pid_z_out);
 
-		}
+        }
 	}
-	*/
 	return 0;
 }

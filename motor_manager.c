@@ -1,5 +1,6 @@
 #include "event_manager.h"
 #include "motor_manager.h"
+#include "setpoints_calc.h"
 #include "uart.h"
 #include "common.h"
 #include <avr/interrupt.h>
@@ -14,7 +15,11 @@ void pwm_start_event(void)
 
 void motor_manager_init(void)
 {
-	uart_log(__func__);
+
+    //PWM PINS
+	DDRD |= ((1<<PD5)|(1<<PD6));
+
+	DDRB |= ((1<<PB1)|(1<<PB2));
 
 	//TIMER 0 INIT
 	TCCR0A = ((1<<COM0A1)|(1<<COM0A0)|(1<<COM0B1)|(1<<COM0B0)|(1<<WGM00));//Phase Correct PWM, output A inverting, output B inverting
@@ -34,7 +39,7 @@ void motor_manager_init(void)
 	event_manager_connect_event(3,pwm_start_event,EVENT_CONTINOUS);
 }
 
-void pwm_set(uint8_t fl, uint8_t fr, uint8_t bl, uint8_t br)
+void motor_manager_pwm_set(uint8_t fl, uint8_t fr, uint8_t bl, uint8_t br)
 {
 	OCR0A = 255 - fl;
 	OCR0B = 255 - fr;
@@ -52,8 +57,8 @@ void motor_manager_update(int16_t thrust, int16_t pid_x, int16_t pid_y, int16_t 
 		pwm_br = (int32_t)thrust - (int32_t)pid_x - (int32_t)pid_y - (int32_t)pid_z;
 		pwm_bl = (int32_t)thrust - (int32_t)pid_x + (int32_t)pid_y + (int32_t)pid_z;
 
-		pwm_fr = (pwm_fr > 32767) ? 32767 : ((pwm_fr < 0) ? 0 : pwm_fr); 
-		pwm_fl = (pwm_fl > 32767) ? 32767 : ((pwm_fl < 0) ? 0 : pwm_fl); 
+		pwm_fr = (pwm_fr > 32767) ? 32767 : ((pwm_fr < 0) ? 0 : pwm_fr);
+		pwm_fl = (pwm_fl > 32767) ? 32767 : ((pwm_fl < 0) ? 0 : pwm_fl);
 		pwm_br = (pwm_br > 32767) ? 32767 : ((pwm_br < 0) ? 0 : pwm_br);
 		pwm_bl = (pwm_bl > 32767) ? 32767 : ((pwm_bl < 0) ? 0 : pwm_bl);
 
@@ -76,8 +81,7 @@ void motor_manager_update(int16_t thrust, int16_t pid_x, int16_t pid_y, int16_t 
 		pwm_bl = 10;
 	}
 
-	pwm_set((uint8_t)pwm_fl,(uint8_t)pwm_fr,(uint8_t)pwm_bl,(uint8_t)pwm_br);
-
+	motor_manager_pwm_set((uint8_t)pwm_fl,(uint8_t)pwm_fr,(uint8_t)pwm_bl,(uint8_t)pwm_br);
 
 }
 
