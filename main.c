@@ -79,6 +79,8 @@ void pid_z_update(uint8_t value)
     }
 }
 
+
+
 int main(void)
 {
 
@@ -111,6 +113,7 @@ int main(void)
     reg_manager_connect_handler(REG_PID_Y_UPDATE,pid_y_update);
     reg_manager_connect_handler(REG_PID_Z_UPDATE,pid_z_update);
 
+
     motor_manager_init();
 
     I2C_dev_init();
@@ -118,12 +121,16 @@ int main(void)
 	sei();
 
     MPU6050_initialize();
-    motor_manager_update(32767,0,0,0);
+    MPU6050_setXGyroOffset(100);
+	MPU6050_setYGyroOffset(30);
+	MPU6050_setZGyroOffset(50);
+
+
 	while(1)
 	{
-        reg_manager_update();
-        event_manager_update();
-        if(main_tick)
+        	reg_manager_update();
+	        event_manager_update();
+        	if(main_tick)
 		{
 			main_tick = 0;
 			MPU6050_getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
@@ -133,11 +140,27 @@ int main(void)
 			pid_y_out = pid_manager_update_pid(pid_y_id,roll,gy);
 			pid_z_out = pid_manager_update_pid(pid_z_id,yaw,gz);
 
-			pid_x_out++;
-			pid_y_out++;
-			pid_z_out++;
-			//motor_manager_update(thrust, pid_x_out, pid_y_out,pid_z_out);
+			motor_manager_update(thrust, pid_x_out, pid_y_out,pid_z_out);
+			if(reg_manager_get_reg(REG_LOG_ENABLE))
+			{
+				reg_manager_set_reg(REG_GYRO_XH,(uint8_t)(gx >> 8));
+				reg_manager_set_reg(REG_GYRO_XL,(uint8_t)(gx));
+				reg_manager_set_reg(REG_GYRO_YH,(uint8_t)(gy >> 8));
+				reg_manager_set_reg(REG_GYRO_YL,(uint8_t)(gy));
+				reg_manager_set_reg(REG_GYRO_ZH,(uint8_t)(gz >> 8));
+				reg_manager_set_reg(REG_GYRO_ZL,(uint8_t)(gz));
 
+
+				reg_manager_set_reg(REG_PID_XH,(uint8_t)(pid_x_out >> 8));
+				reg_manager_set_reg(REG_PID_XL,(uint8_t)(pid_x_out));
+
+				reg_manager_set_reg(REG_PID_YH,(uint8_t)(pid_y_out >> 8));
+				reg_manager_set_reg(REG_PID_YL,(uint8_t)(pid_y_out));
+
+				reg_manager_set_reg(REG_PID_ZH,(uint8_t)(pid_z_out >> 8));
+				reg_manager_set_reg(REG_PID_ZL,(uint8_t)(pid_z_out));
+
+			}
         }
 	}
 	return 0;
