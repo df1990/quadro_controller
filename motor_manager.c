@@ -108,7 +108,7 @@ void motor_manager_init(void)
 	GTCCR |= (1 << TSM);
 
 	event_manager_connect_event(3,pwm_start_event,EVENT_CONTINOUS);
-	reg_manager_connect_handler(MOTOR_ENABLE,motor_enable_update);
+	reg_manager_connect_handler(REG_MOTOR_ENABLE,motor_enable_update);
 	reg_manager_connect_handler(REG_PWM_UPDATE,dbg_pwm_update);
 }
 

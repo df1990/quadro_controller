@@ -5,7 +5,7 @@
 //REG DEFINITIONS
 
 /////////////////////////////////////////
-#define REG_STATUS 	        0
+#define REG_STATE 	        0
 #define REG_COMMAND 	    	1
 /////////////////////////////////////////
 #define REG_THRUST	        2
@@ -58,7 +58,7 @@
 #define REG_BL_PWM		42
 #define REG_BR_PWM		43
 #define REG_PWM_UPDATE		44
-#define MOTOR_ENABLE		45
+#define REG_MOTOR_ENABLE	45
 ////////////////////////////////////////
 #define REG_GX_OFFSET		46
 #define REG_GY_OFFSET		47
