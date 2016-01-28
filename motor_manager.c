@@ -88,7 +88,7 @@ void motor_manager_init(void)
 {
 
     //PWM PINS
-	motor_enable_update(0);
+	motor_enable_update(0x00);
 	//DDRD |= ((1<<PD5)|(1<<PD6));
     //DDRB |= ((1<<PB1)|(1<<PB2));
 
