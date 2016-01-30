@@ -1,14 +1,26 @@
 #include "reg_manager.h"
 #include "frame_manager.h"
+#include "event_manager.h"
 #include "common.h"
 //#include "uart.h"
 #include <stdlib.h>
 #include <stdio.h>
 
+
 uint8_t reg_array[REG_COUNT];
 void (*reg_handlers[REG_COUNT])(uint8_t);
 
 static struct frame quadro_frame;
+static uint8_t frame_timeout_id;
+
+
+void frame_timeout(void)
+{
+    if(reg_manager_get_reg(REG_STATE) == 1)
+    {
+        reg_manager_set_reg(REG_STATE,2);
+    }
+}
 
 void reg_manager_init(void)
 {
@@ -18,7 +30,7 @@ void reg_manager_init(void)
 		reg_array[index] = 0;
 		reg_handlers[index] = NULL;
 	}
-
+    frame_timeout_id = event_manager_connect_event(1000,frame_timeout,EVENT_SINGLE);
 	frame_manager_init();
 }
 
@@ -110,6 +122,10 @@ void reg_manager_set_reg(uint8_t reg_id, uint8_t reg_value)
 	if(reg_id < REG_COUNT)
 	{
 		reg_array[reg_id] = reg_value;
+		if(reg_handlers[reg_id] != NULL)
+        {
+            reg_handlers[reg_id](reg_array[reg_id]);
+        }
 	}
 }
 
@@ -119,6 +135,7 @@ void reg_manager_update(void)
 {
 	if(frame_manager_get_frame(&quadro_frame))
 	{
+        event_manager_start_event(frame_timeout_id);
         switch(quadro_frame.command)
         {
             case COMMAND_REG_WRITE:

@@ -132,6 +132,29 @@ void event_manager_stop_event(uint8_t event_id)
 	}
 }
 
+void event_manager_reinit_event(uint8_t event_id, uint32_t tick_count, enum event_type type)
+{
+    if((event_id > 0) && (event_id <= SLOTS_COUNT))
+	{
+		uint8_t event_index = event_id -1;
+        if(1 == slots[event_index].slot_connected)
+		{
+            slots[event_index].type = type;
+			if(type == EVENT_CONTINOUS)
+			{
+				slots[event_index].event_active = 1;
+				slots[event_index].ticks_left = tick_count;
+			}
+			else
+			{
+				slots[event_index].event_active = 0;
+				slots[event_index].ticks_left = 0;
+			}
+			slots[event_index].ticks_interval = tick_count;
+		}
+    }
+}
+
 ISR(TIMER2_COMPA_vect)
 {
 	//DBG_LED2_TOGGLE;

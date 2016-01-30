@@ -9,5 +9,6 @@ uint8_t event_manager_connect_event(uint32_t tick_count, void (*event)(void), en
 void event_manager_update(void);
 void event_manager_start_event(uint8_t event_id);
 void event_manager_stop_event(uint8_t event_id);
+void event_manager_reinit_event(uint8_t event_id, uint32_t tick_count, enum event_type type);
 
 #endif

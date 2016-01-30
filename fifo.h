@@ -3,7 +3,7 @@
 
 #include <avr/io.h>
 
-#define FIFO_SIZE 32
+#define FIFO_SIZE 64
 
 struct fifo {
 	uint8_t w_index;

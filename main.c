@@ -22,6 +22,7 @@
 
 static uint8_t main_tick;
 static uint8_t pid_x_id, pid_y_id, pid_z_id;
+static uint8_t blink_id;
 
 void dbg_led_blink(void)
 {
@@ -79,7 +80,45 @@ void pid_z_update(uint8_t value)
     }
 }
 
+void state_update(uint8_t value)
+{
+    if(value == 0)//state idle
+    {
+        DBG_LED2_OFF;
+        event_manager_reinit_event(blink_id,300,EVENT_CONTINOUS);
+    }
+    else if(value == 1)//state flight
+    {
+        DBG_LED2_OFF;
+        event_manager_reinit_event(blink_id,1000,EVENT_CONTINOUS);
+    }
+    else if(value == 2)//state error
+    {
+        DBG_LED2_ON;
+        event_manager_reinit_event(blink_id,5000,EVENT_CONTINOUS);
+        reg_manager_set_reg(REG_LOG_ENABLE,0);
+        reg_manager_set_reg(REG_MOTOR_ENABLE,0);
+    }
+}
 
+#define ERR_GYRO 30000
+
+uint8_t error_condition(int16_t gx, int16_t gy, int16_t gz, int16_t pid_x_out, int16_t pid_y_out, int16_t pid_z_out)
+{
+    if( (gx > ERR_GYRO) || (gx < -ERR_GYRO) ||
+        (gy > ERR_GYRO) || (gx < -ERR_GYRO) ||
+        (gz > ERR_GYRO) || (gz < -ERR_GYRO) ||
+        (pid_x_out > ERR_GYRO) || (pid_x_out < -ERR_GYRO) ||
+        (pid_y_out > ERR_GYRO) || (pid_y_out < -ERR_GYRO) ||
+        (pid_z_out > ERR_GYRO) || (pid_z_out < -ERR_GYRO))
+        {
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
+}
 
 int main(void)
 {
@@ -98,10 +137,13 @@ int main(void)
 	DBG_LED3_OFF;
 
 
-    reg_manager_init();
+
 
     event_manager_init();
-    event_manager_connect_event(1000,dbg_led_blink,EVENT_CONTINOUS);
+    reg_manager_init();
+
+    blink_id = event_manager_connect_event(300,dbg_led_blink,EVENT_CONTINOUS);
+    //frame_timeout_id = event_manager_connect_event(1000,frame_timeout,EVENT_SINGLE);
     event_manager_connect_event(10,main_loop_tick,EVENT_CONTINOUS);
 
     pid_manager_init();
@@ -109,6 +151,7 @@ int main(void)
 	pid_y_id = pid_manager_create_pid(REG_PID_Y_PH,REG_PID_Y_IH,REG_PID_Y_DH);
 	pid_z_id = pid_manager_create_pid(REG_PID_Z_PH,REG_PID_Z_IH,REG_PID_Z_DH);
 
+    reg_manager_connect_handler(REG_STATE,state_update);
     reg_manager_connect_handler(REG_PID_X_UPDATE,pid_x_update);
     reg_manager_connect_handler(REG_PID_Y_UPDATE,pid_y_update);
     reg_manager_connect_handler(REG_PID_Z_UPDATE,pid_z_update);
@@ -128,11 +171,12 @@ int main(void)
 
 	while(1)
 	{
-        	reg_manager_update();
-	        event_manager_update();
-        	if(main_tick)
+        reg_manager_update();
+        event_manager_update();
+        if((main_tick) && (reg_manager_get_reg(REG_STATE) == 1))
 		{
 			main_tick = 0;
+
 			MPU6050_getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
 			setpoints_calc(&thrust, &pitch, &roll, &yaw);
 
@@ -140,7 +184,15 @@ int main(void)
 			pid_y_out = pid_manager_update_pid(pid_y_id,roll,gy);
 			pid_z_out = pid_manager_update_pid(pid_z_id,yaw,gz);
 
-			motor_manager_update(thrust, pid_x_out, pid_y_out,pid_z_out);
+            //if(error_condition(gx,gy,gz,pid_x_out,pid_y_out,pid_z_out))
+            //{
+            //    reg_manager_set_reg(REG_STATE,2);
+            //}
+            //else
+            //{
+                motor_manager_update(thrust, pid_x_out, pid_y_out,pid_z_out);
+            //}
+
 			if(reg_manager_get_reg(REG_LOG_ENABLE))
 			{
 				reg_manager_set_reg(REG_GYRO_XH,(uint8_t)(gx >> 8));
