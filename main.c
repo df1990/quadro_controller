@@ -86,6 +86,8 @@ void state_update(uint8_t value)
     {
         DBG_LED2_OFF;
         event_manager_reinit_event(blink_id,300,EVENT_CONTINOUS);
+        reg_manager_set_reg(REG_LOG_ENABLE,0);
+        reg_manager_set_reg(REG_MOTOR_ENABLE,0);
     }
     else if(value == 1)//state flight
     {
