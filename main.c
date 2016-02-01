@@ -88,6 +88,13 @@ void state_update(uint8_t value)
         event_manager_reinit_event(blink_id,300,EVENT_CONTINOUS);
         reg_manager_set_reg(REG_LOG_ENABLE,0);
         reg_manager_set_reg(REG_MOTOR_ENABLE,0);
+        reg_manager_set_reg(REG_THRUST,0);
+        reg_manager_set_reg(REG_PITCH,0);
+        reg_manager_set_reg(REG_ROLL,0);
+        reg_manager_set_reg(REG_YAW,0);
+        pid_manager_reset_pid(pid_x_id);
+        pid_manager_reset_pid(pid_y_id);
+        pid_manager_reset_pid(pid_z_id);
     }
     else if(value == 1)//state flight
     {
@@ -149,9 +156,36 @@ int main(void)
     event_manager_connect_event(10,main_loop_tick,EVENT_CONTINOUS);
 
     pid_manager_init();
+
+    reg_manager_set_reg(REG_PID_X_PH,2);
+    reg_manager_set_reg(REG_PID_X_PL,58);
+    reg_manager_set_reg(REG_PID_X_IH,0);
+    reg_manager_set_reg(REG_PID_X_IL,5);
+    reg_manager_set_reg(REG_PID_X_DH,0);
+    reg_manager_set_reg(REG_PID_X_DL,0);
+
+    reg_manager_set_reg(REG_PID_Y_PH,2);
+    reg_manager_set_reg(REG_PID_Y_PL,58);
+    reg_manager_set_reg(REG_PID_Y_IH,0);
+    reg_manager_set_reg(REG_PID_Y_IL,5);
+    reg_manager_set_reg(REG_PID_Y_DH,0);
+    reg_manager_set_reg(REG_PID_Y_DL,0);
+
+    reg_manager_set_reg(REG_PID_Z_PH,3);
+    reg_manager_set_reg(REG_PID_Z_PL,20);
+    reg_manager_set_reg(REG_PID_Z_IH,0);
+    reg_manager_set_reg(REG_PID_Z_IL,5);
+    reg_manager_set_reg(REG_PID_Z_DH,0);
+    reg_manager_set_reg(REG_PID_Z_DL,0);
+
+
     pid_x_id = pid_manager_create_pid(REG_PID_X_PH,REG_PID_X_IH,REG_PID_X_DH);
 	pid_y_id = pid_manager_create_pid(REG_PID_Y_PH,REG_PID_Y_IH,REG_PID_Y_DH);
 	pid_z_id = pid_manager_create_pid(REG_PID_Z_PH,REG_PID_Z_IH,REG_PID_Z_DH);
+
+	pid_manager_reinit_pid(pid_x_id);
+	pid_manager_reinit_pid(pid_y_id);
+	pid_manager_reinit_pid(pid_z_id);
 
     reg_manager_connect_handler(REG_STATE,state_update);
     reg_manager_connect_handler(REG_PID_X_UPDATE,pid_x_update);

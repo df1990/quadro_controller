@@ -7,8 +7,8 @@
 #define MAX_INT16 32767L
 #define MIN_INT16 -32768L
 
-#define PITCH_MAX_RANGE 30L //max pitch rotation speed in deg/sec
-#define ROLL_MAX_RANGE 30L //max roll rotation speed in deg/sec
+#define PITCH_MAX_RANGE 60L //max pitch rotation speed in deg/sec
+#define ROLL_MAX_RANGE 60L //max roll rotation speed in deg/sec
 #define YAW_MAX_RANGE 30L //max yaw rotation speed in deg/sec
 
 #define THRUST_MAX_VALUE MAX_INT16

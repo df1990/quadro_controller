@@ -57,34 +57,46 @@ uint8_t pid_manager_reinit_pid(uint8_t pid_id)
 	if((pid_id > 0) && (pid_id <= PID_COUNT))
 	{
 		uint8_t index = pid_id - 1;
+        if(pid_array[index].pid_created)
+		{
+            uint16_t temp_p;
+                uint16_t temp_i;
+                uint16_t temp_d;
 
-		uint16_t temp_p;
-         	uint16_t temp_i;
-         	uint16_t temp_d;
+            temp_p = 0;
+                temp_p = (uint16_t)(reg_manager_get_reg(pid_array[index].p_addr));
+                temp_p <<= 8;
+                temp_p |= (uint16_t)(reg_manager_get_reg(pid_array[index].p_addr + 1));
+                temp_p &= 0x7FFF;
 
-		temp_p = 0;
-       		temp_p = (uint16_t)(reg_manager_get_reg(pid_array[index].p_addr));
-       		temp_p <<= 8;
-	        temp_p |= (uint16_t)(reg_manager_get_reg(pid_array[index].p_addr + 1));
-         	temp_p &= 0x7FFF;
+                temp_i = 0;
+                temp_i = (uint16_t)(reg_manager_get_reg(pid_array[index].i_addr));
+                temp_i <<= 8;
+                temp_i |= (uint16_t)(reg_manager_get_reg(pid_array[index].i_addr + 1));
+                temp_i &= 0x7FFF;
 
-         	temp_i = 0;
-         	temp_i = (uint16_t)(reg_manager_get_reg(pid_array[index].i_addr));
-         	temp_i <<= 8;
-         	temp_i |= (uint16_t)(reg_manager_get_reg(pid_array[index].i_addr + 1));
-         	temp_i &= 0x7FFF;
+            temp_d = 0;
+                temp_d = (uint16_t)(reg_manager_get_reg(pid_array[index].d_addr));
+                temp_d <<= 8;
+                temp_d |= (uint16_t)(reg_manager_get_reg(pid_array[index].d_addr + 1));
+                temp_d &= 0x7FFF;
 
-		temp_d = 0;
-         	temp_d = (uint16_t)(reg_manager_get_reg(pid_array[index].d_addr));
-         	temp_d <<= 8;
-         	temp_d |= (uint16_t)(reg_manager_get_reg(pid_array[index].d_addr + 1));
-         	temp_d &= 0x7FFF;
-
-	        pid_Reinit((int16_t)(temp_p), (int16_t)(temp_i), (int16_t)(temp_d), &(pid_array[index].pid));
-
-
+                pid_Reinit((int16_t)(temp_p), (int16_t)(temp_i), (int16_t)(temp_d), &(pid_array[index].pid));
+        }
 	}
  	return 0;
+}
+
+void pid_manager_reset_pid(uint8_t pid_id)
+{
+    if((pid_id > 0) && (pid_id <= PID_COUNT))
+	{
+		uint8_t index = pid_id - 1;
+        if(pid_array[index].pid_created)
+        {
+            pid_Reset_Integrator(&(pid_array[index].pid));
+        }
+	}
 }
 
 int16_t pid_manager_update_pid(uint8_t pid_id, int16_t set_val, int16_t meas_val)
@@ -95,8 +107,10 @@ int16_t pid_manager_update_pid(uint8_t pid_id, int16_t set_val, int16_t meas_val
 	if((pid_id > 0) && (pid_id <= PID_COUNT))
 	{
 		uint8_t index = pid_id - 1;
-
-		ret_val = pid_Controller(set_val, meas_val,&(pid_array[index].pid));
+        if(pid_array[index].pid_created)
+        {
+            ret_val = pid_Controller(set_val, meas_val,&(pid_array[index].pid));
+        }
 	}
 	return ret_val;
 
